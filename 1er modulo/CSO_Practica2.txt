@@ -1,0 +1,190 @@
+1)
+  A) VIM, Nano, Vi
+  B) Modos de operación: Insert, Visual, Modo de órdenes/normal.
+     CAT: Imprimirá por pantalla el contenido del fichero sin posibilidad de cambiarlo. 
+     MORE: Es un filtro para recorrer un texto dándonos la posibilidad de hacer scroll por página
+     LESS: Imprime el contenido del fichero, podemos ir hacia adelante y hacia atrás y no tiene que leer todo el archivo antes de comenzar por lo que es más rápido que el editor de textos VIM.
+    
+  C) :w -> guardar
+     :wq -> guardar y salir
+     :q -> salir sin guardar
+     :y -> copiar al portapapeles
+     :p -> pegar desde el portapapeles
+2)
+   A) Se ejecuta el código del BIOS
+      El BIOS ejecuta el POST (POST Power-On Self-Test: operación que testea)
+      El BIOS lee el MBR (Master Boot Register -> tiene el master boot code que tiene las instrucciones para cargar el boot loader) (sector de arranque)
+      Se carga el MBC (Master Boot Code -> Instrucciones para cargar el Boot Loader: gestor de arranque) (gestor de arranque)
+      El bootloader carga el Kernel y el Initrd
+      Se monta el initrd como sistema de archivos raíz y se inicializan componentes esenciales
+      El kernel ejecuta el proceso init y se desmonta el initrd
+      Se lee el /etc/inittab (Inittab -> archivo de configuración usado por el inicializador SystemV)
+      Se ejecutan los scripts apuntados por el runlevel 1
+      El final del runlevel 1 le indica que vaya al runlevel por defecto
+      Se ejecutan los scripts apuntados por el runlevel por defecto
+      El sistema está listo para usarse
+      
+   B) Al proceso INIT lo ejecuta el Kernel y su función es cargar todos los subprocesos necesarios para el correcto funcionamiento del SO
+   C) El comando pstree nos permite ver los procesos activos en nuestro sistema Linux en forma de diagrama de árbol
+   D) Runlevel: Modo en el que arranca Linux, se divide en niveles (Runlevel 2 en Debian y Runlevel 3 en Redhat). Cada nivel es responsable de iniciar o parar una serie de servicios. Existen 7 runlevels y permiten iniciar un conjunto de procesos al arranque o apagado del sistema
+   E) Niveles de ejecución de niveles:
+   	0: halt (parada)
+   	1: Single user mode
+   	2: Multiuser, without NFS (sin soporte de red)
+   	3: Full multiuser mode console (modo multiusuario completo por consola)
+   	4: no se usa
+   	5: X11 (multiusuario completo con login gráfico basado en X)
+   	6: reboot
+   	Se define en /etc/inittab. Todas las distribuciones respetan estos estándares.
+   F) Inittab: Archivo de configuración que utiliza el SystemV y configura al proceso de arranque tanto al Init como a los Runlevel. El daemon init inicia los procesos mediante la lectura de la información del archivo /etc/inittab. Aquí se encuentran definidos los puntos importantes para el proceso init. En /etc/inittab se encuentran definidos los Runlevels. Se describe qué acción se realizará (wait, initdefault, ctrlaltdel, off, respawn, once, sysinit, boot, bootwait, etc.) y el proceso exacto que será ejecutado.
+   	Estructura: 
+   		-> ID: identifica la entrada de inittab
+   		-> NivelesEjecución: los niveles de ejecución en los que se realiza la acción
+   		-> Acción: describe la acción a realizar (wait, initdefault, ctrlaltdel, off, respawn, etc.)
+   		-> Proceso: el proceso exacto que será ejecutado
+   		
+   G) El comando a utilizar para cambiar de runlevel es: telinit. No, no es permanente dado que podemos movernos entre niveles.
+   
+   H) Cuando init entra a un nivel de ejecución, llama al script RC con un argumento numérico que especifica el nivel de ejecución al que ir. Luego rc inicia y detiene los servicios en el sistema según sea necesario para llevar el sistema a ese nivel de ejecución. Init puede llamar al script rc para cambiar los niveles de ejecución. Los scripts que se ejecutan se encuentran en /etc/init.d. En /etc/rcX.d (X = 0..6) hay links a los archivos del /etc/init.d
+   Hay un orden para llamar cada script a ejecutar organizados, administrados y ordenados por el Insserv
+    
+  I) Es un organizador que sirve para administrar el orden de los enlaces simbólicos del /etc/rcX.d resolviendo dependencias automáticamente. 
+  
+  J) Upstart permite la ejecución de trabajos en forma asincrónica a través de eventos (event-based). Estos trabajos son conocidos como jobs cuyo principal objetivo es definir servicios o tareas a ser ejecutadas por init. Son scripts de texto plano que definen las acciones/tareas a ejecutar por determinados eventos.
+  Upstart maneja el proceso de arranque a través de trabajos (jobs).
+  
+  K) SystemV el tiempo de boot depende de la optimización del admin. Están escritos como scripts de Shell, son fáciles de modificar
+	La principal diferencia es que Upstart ejecuta jobs de forma asincrónica, está basado en eventos (event-based) mientras que en SystemV es sincrónico (dependency-based). Upstart es un reemplazo que se basa en eventos para el daemon /sbin/init que son pausados cuando se ejecuta Shutdown o iniciados cuando el sistema se inicia. El proceso "init" tiene el proceso ID (PID) "1", es decir, es el primer proceso que se ejecuta sin contar al initrd.
+
+  L)
+  
+  M)
+  
+  N) Systemd: Sistema que centraliza la administración de daemons y librerías del sistema.
+  	-> Mejora el paralelismo de booteo
+  	-> Puede ser controlado por systemctl (Comando responsable de administrar y controlar la configuración del sistema y de los servicios. Permite administrar el SO y controlar el estado de los servicios)
+  	-> Compatible con SysV -> si es llamado como init
+  	-> El daemon systemd reemplaza el proceso init, el cual pasa a tener PID 1
+  	-> Runlevels reemplazados por Targets (Diferentes estados en los que el sistema puede iniciarse)
+  	-> /etc/inittab no existe más
+  
+  Las unidades de trabajo se denominan Units, pueden tener estado Active o Inactive y existen varios tipos:
+  	1) Service: controla un servicio particular (.service)
+  	2) Socker: Encapsula IPC, un socket del sistema o file system FIFO (.socket)
+  	3) Target: agrupa units o establece puntos de sincronización durante el booteo (.target)
+  	4) Snapshot: Almacena el estado de un conjunto de unidades que puede ser reestablecido más tarde (.snapshot)
+  	etc.
+  
+  Ñ) Activación por socket: Mecanismo de iniciación bajo demanda, es decir que podemos ofrecer una variedad de servicios sin que  estén iniciados.
+  	Cuando el socket recibe una conexión spawnea el servicio y le pasa el socket.
+  	No es necesario definir dependencias entre servicios.
+  	
+  O) Cgroups: Permite organizar un grupo de procesos en forma jerárquica. Agrupa un conjunto de procesos relacionados.
+  
+  
+3)
+  A) La información principal (nombre de usuario, UID, GID, login shell) de cada usuario se encuentra en /etc/passwd. Antiguamente las contraseñas se guardaban en la misma carpeta siendo vulnerables a ataques, por lo que se decidió crear la carpeta shadow que posee las contraseñas encriptadas y solamente el usuario root tiene acceso a ella. Y /etc/group contiene los nombres de los grupos y una lista de los usuarios que pertenecen a cada grupo.
+  
+  B) UID: Unique ID. Es un número único con el que cada usuario de Linux se identifica. Pertenecen a un grupo principal de usuario identificado por un número único de grupo llamado GID: Group ID
+  
+  C) El usuario Root es también conocido como superusuario o administrador. Su UID es 0 y sólo puede existir una única cuenta root en el sistema. Tiene todos los privilegios sobre el sistema, acceso a todas las carpetas, directorios, archivos. Deniega o da permisos a los demás usuarios. Puede detener el sistema, hacerle tareas de mantenimiento, instalar software.
+  
+  D)
+  
+4)
+  A) Cada usuario pertenece a uno o más grupos. El administrador del sistema puede modificar los grupos, ya sea agregar o eliminar usuarios, crear o eliminar grupos y agregar o eliminar usuarios de un grupo. Cada archivo tiene información la cual indica: Quién es el dueño del archivo, el grupo del archivo y los permisos del mismo.
+   Los permisos están divididos en tres tipos: Lectura, escritura y ejecución (rwx) los cuales están fijados para tres clases de usuarios: Propietario, grupo del mismo y el resto de los usuarios. 
+    Permiso de lectura (e)-> permite leer/ver el archivo
+    Permiso de escritura (w) -> Permite modificar el archivo y en caso de un directorio permite crear o borrar archivos en él
+    Permiso de ejecución (x)-> Permite moverse a un directorio o ejecutar el archivo.
+    Visualización de permisos: -x-x--x--
+    De atrás para adelante:
+      -> x-- :acceso a "otros usuarios"
+      -> x-- :acceso a miembros de grupo
+      -> x-  :acceso al dueño
+      -> -   :Tipo de archivo
+      Esto puede ser: -wr-r--r-- donde "otros" tendría acceso a read, grupo tendría acceso a read y el propietario tendría acceso a write y read.
+       
+  B) CHMOD: Modifica los permisos
+     CHOWN: Cambia el usuario y grupo propietarios
+     CHGRP: Cambia el grupo de pertenencia de archivos y directorios
+     
+  C) Notación octal: sistema de numeración posicional cuya base es 8, utilizando los dígitos: 0,1,2,3,4,5,6,7. La ventaja con el sistema hexadecimal es que no requiere utilizar otros símbolos diferentes de los dígitos. Estos 8 dígitos tienen el mismo valor que en el caso del sistema decimal, pero su valor relativo cambia dependiendo de la posición que estos ocupen
+  
+  D)
+  
+  E)El "full path name" es el nombre completo que se necesita para localizar un archivo o carpeta, comenzando por el elemento root y finalizando con otros subdirectorios. Por ejemplo si quiero ingresar a un directorio llamado nuevoDirectorio, el full path name sería /home/nombre_de_usuario/nuevoDirectorio.
+  
+  El relative path name es el nombre específico de un archivo encontrado en el directorio actual, o el nombre de un directorio ubicado por encima o por debajo del directorio actual.
+  
+  F) Con el comando PWD podemos saber dónde estamos parados
+  .
+  .
+  . ¿?
+  
+5)
+  A) Un proceso es un programa en ejecución, es una entidad viva, transita un ciclo de vida, es decir que el proceso "nace" y "muere". El programa sólo es el código, lo que lo indica qué va a hacer, y el proceso es ejecutar ese código. Sus datos se encuentra en la PCB (PCB: Process Control Block. Estructura de datos asociada al proceso, existe una por proceso, es la que tiene cómo se conforma el espacio de direcciones).
+  PID: Process ID -> Identificador de proceso. Es un número asignado por el sistema a cada proceso que se inicia, sirve para identificarlos
+  PPID: Es el identificador del proceso padre. Cada proceso secundario tiene el mismo PPID que es igual al PID del proceso padre
+  Otros atributos: 
+    UID: Usuario que ejecuta el proceso
+    GID: Grupo del usuario que lanzó el proceso
+  
+  B) El comando "ps" y "pstree" muestra los procesos actuales sin actualización continua. Para ver una actualización constante se usa el comando "top". 
+  Las opciones más importantes son:
+  	-a: Muestra los procesos de todas las terminales.
+  	-u: Muestra el usuario al que pertenece el proceso y la hora de inicio
+  	-x: muestra procesos que no están controlados por ningún terminal
+  
+  C) Foreground: Cuando un proceso está en ejecución y podemos verlo dentro de la terminal se dice que está en foreground.
+     Background: Cuando un proceso está en ejecución sin que sea mostrado, se dice que se está ejecutando en el background. 
+Los procesos se colocan en el background para liberar la shell para otras actividades
+
+  D) Foreground: Los procesos se inician en este modo escribiendo el comando en la línea de comandos.
+     Background: Los procesos se inician en este modo escribiendo & al final de la línea del comando.
+Para colocar un proceso en background también podemos usar las letras Ctrl+Z seguido del comando bg. Para retornarlo a la shell principal, utilizamos el comando fg [N], donde N:número de orden de entrada del sistema.
+
+  E) PIPE "|" --> Este comando nos permite pasar la salida de un comando a otro. Lo que sale en la salida estándar del comando de la izquierda, pasa al comando de la derecha. <Comando1> | <Comando2>
+  Por ejemplo haciendo: "cat /etc/passwd | cut -d: -f1" estamos pasándole la información de los usuarios obtenida por "cat /etc/passwd" al comando "cut" para quedarnos sólo con la primer columna hasta el corte ":" de lo obtenido por el primer comando.
+  
+  F) Para redirigir las salidas se utiliza el descriptor de fichero seguido del símbolo '>'. Por ejemplo: ls -l > fichero.txt
+Guardamos la salida de ls -l en "fichero.txt". Si no existe lo crea, si existe lo sobrescribe.
+     Si utilizamos la redirección: '>>', por ejemplo ls -l >> fichero.txt
+Guardamos la salida de ls -l en "fichero.txt". Si no existe lo crea, si existe escribe al final del documento.
+Si utilizamos la redirección: '<' estaríamos pasando el contenido del fichero como parámetro al comando.
+
+  G) KILL: comando utilizado para enviar mensajes sencillos a los procesos ejecutándose en el sistema. Por defecto el mensaje que se envía es la señal de terminación (solicita al proceso limpiar su estado y salir). Kill es un wrapper alrededor de la llamada al sistema kill() que envía señales a procesos o grupos de procesos en el sistema referenciados por sus IDs.
+  
+  
+6)
+  A) Los archivos TAR son archivos empaquetados (no quiere decir que sean comprimidos). Parecido a ZIP. Su función es incluir todos los ficheros juntos en el mismo archivo conservando las estructuras de directorios y permisos.
+    Para empaquetar: tar -cvf archivo.tar/directorio/empaquetar
+    Para extraer: tar -xvf archivo.tar
+    Para actualizar el contenido ya existente: tar -uvf archivo.tar
+    Para agregar un directorio a un archivo tar ya existente: tar -rvf archivo.tar/directorio/nuevo
+    Para empaquetar y comprimir: tar -cvzf archivo.tgz/directorio/empaquetarYcomprimir
+    Para desempaquetar el tgz: tar -xvzf archivo.tgz
+    
+  C) Para comprimir 4 archivos en uno solo se debe hacer:
+  		tar -cvzf archivo_comprimidodo.tgz/home/archivo1o2o3o4
+  		
+  D) No se puede comprimir un conjunto de archivos con un único comando, se deben comprimir de a uno. Sin embargo se puede empaquetar varios archivos y luego comprimirlos. Con lo cual se estaría comprimiendo un conjunto de archivos.
+  
+  E) 
+  tar: empaqueta archivos usando la extensión .tar
+  gzip: comprime solo archivos utilizando la extensión .gz
+  wc: cuenta los caracteres, palabras y líneas del archivo de texto
+  
+  
+  
+8)
+  A) Kill -9 23 (kill 23 -> operación no permitida. Por eso se debe utilizar el -9)
+  B) No se puede terminar con el proceso Init
+  C) find / -name *.conf
+  D) ps > /home/Ignacio/procesos
+  E) chmod 751 /home/Ignacio/xxxx
+  F) chmod 650 /home/Ignacio/yyyy
+  G) rm /tmp/*
+  H) chown iso2010 /opt/isodata
+  I) pwd >> /home/Ignacio/donde
+  

@@ -1,0 +1,102 @@
+Procesos:
+	Son partes de un programa más grande
+	Cualquier programa que quiero ejecutar se va a dividir en procesos y éstos van a ser ejecutados.
+	Se dividen según su historial de ejecución:
+		-CPU Bound: Sólo usan ráfagas de CPU, es decir, todo el tiempo de su ejecución van a usar tiempo de la CPU
+		-I/O Bound: Combinan ráfagas de CPU con entrada salida
+
+
+Diferencias entre programa y proceso:
+	◆Programa:
+		Es estático (no cambia una vez escrito)
+		Reside en disco
+		No tiene program Counter
+		existe desde que se edita hasta que se borra
+	◆Proceso:
+		Es dinámico
+		Reside en RAM
+		Se le puede dar tiempo de cpu para que se ejecute
+		Tiene program counter (para saber en qué instrucción se quedó la CPU en el último ciclo de ejecución)
+		Su ciclo de vida comprende desde que se lo ejecuta hasta que termina
+
+
+PCB:
+	Estructura creada para guardar información necesaria y mínima de un proceso para poder seguir siendo ejecutado
+	Una por proceso
+	Es lo primero que se crea cuando se realiza un fork
+	Es lo último que se borra de un proceso
+	
+
+Planificadores | Scheduler:
+	Deciden, dependiendo los recursos disponibles, si se pueden cargar procesos a memoria RAM y cuáles se van a ejecutar, con qué orden y prioridad
+	Son la clave de la multiprogramación
+	Diseñados de manera apropiada para cumplir con:
+		◇ Menor tiempo de respuesta de los procesos
+		◇ Mayor rendimiento de la CPU
+		◇ Uso eficiente del procesador
+	Existen 3 tipos:
+		◇ Long term scheduler: Admite nuevos procesos a memoria y controla el grado de multiprogramación. Es el que menos se ejecuta (selecciona un proceso en estado "new" y lo carga a RAM)
+		◇ Medium term scheduler: Realiza el swapping entre disco y memoria cuando el SO lo determina, se encarga de disminuir el grado de multiprogramación (quita procesos de la RAM)
+		◇ Short term scheduler: Determina qué proceso pasará a ejecutarse. Es el que se ejecuta con más frecuencia (determina qué proceso pasa de "ready" a "running")
+		
+	El Long Term admite procesos y los pone en cola de "ready". Estos procesos compiten por la CPU, compiten para que el Short Term los seleccione. Dependiendo del algoritmo de planificación que se esté utilizando, el short term seleccionará uno u otro proceso (ya sea por prioridad, quién llegó primero, etc.).
+	
+
+Tiempo de los procesos
+	◇ Retorno: tiempo que transcurre entre que el proceso llega al sistema hasta que completa su ejecución. Tiempo de vida del proceso, desde que se crea (new|ready) hasta que termina
+	◇ Espera: tiempo que el proceso se encuentra en el sistema esperando, es tiempo que pasa sin ejecutarse. Sería el tiempo de vida desde que se creo -(menos) tiempo de ejecución
+	◇ Promedios: promedio de los anteriores. Importante para saber qué algoritmo de planificación me conviene usar
+	
+
+Algoritmos de planificación: No apropiativo vs Apropiativo
+	◆ No apropiativo: una vez que un proceso está en estado de ejecución, continúa hasta que termina o se bloquea por algún evento. Ejemplos: SJF (el proceso más corto primero). 
+	◆ Apropiativo: El proceso en ejecución puede ser interrumpido y llevado a la cola de listos. No va a haber procesos que nunca se ejecuten. Ejemplos: SRTF (selecciona  el proceso al cual le resta menos tiempo de ejecución)
+		◇ Round Robin: Se basa en un reloj que asigna Quantum, es decir, le marca a cada proceso cuánto tiempo de CPU puede estar en ejecución. Cuando el quantum es muy chico se producen mucho context switch.  Si el quantum es muy grande, se genera un FIFO. Una vez terminado el Quantum, el proceso vuelve a estado de Ready. Existe el RR de timer variable y fijo
+			Variable: El contador se inicializa en Q cada vez que un proceso es asignado a la cpu. Es el más utilizado
+			Fijo: Se inicializa en Q cuando su valor llega a 0. Es decir, si se asignan 4 quantums y un proceso utiliza 3, tiene que atender una E/S, el próximo proceso sólo tendría 1 Quantum.
+			
+	◇ Algoritmo con Uso de Prioridades: Puede ser Apropiativo o no. Se suele usar una cola distinta para cada prioridad y esto puede causar inanición dado que si constantemente se cargan procesos en la cola de mayor prioridad, los de menor prioridad no se ejecutan. Para que esto no ocurra se utiliza Aging o Penalty, que produce que los procesos cambien su prioridad durante su ciclo de vida (Si un proceso se ejecuta muy seguido, se le baja la prioridad y si un proceso no se ejecuta, se le sube la prioridad).
+	
+
+
+Algoritmos de planificación - CPU + I/O
+	Ciclo de vida de un proceso: Un proceso utiliza tanto CPU + operaciones de I/O
+	Cada dispositivo tiene su cola de procesos en espera -> Un planificador por cola
+	I/O es independiente de la CPU (porque es manejado por el DMA o PCI) por esto se puede realizar uso de la CPU y operaciones de I/O  en simultaneo
+	
+Cuando un proceso empata con otro por sus características en la cola de "ready", se utilizan criterios de desempate:
+	Por orden de llegada, el que llegó primero será al que se le asigne la CPU
+	Y si llegaron al mismo tiempo, será por el PID más chico
+	
+Colas multinivel:
+	Schedulers actuales: combinación de algoritmos vistos
+	La cola de "ready" es dividida en varias colas. Cada cola tiene su propio algoritmo de planificación, es decir que una cola puede tener planificación FIFO, otra por RR y otra por SJF
+	Los procesos se colocan en las colas según una clasificación realizada por el SO
+	Planificador horizontal --> Cada cola posee su propio algoritmo de planificación
+	Planificador vertical --> Existe un algoritmo que planifica las colas
+	Retroalimentación: Un proceso puede cambiar de una cola a la otra
+	
+	
+Planificación con múltiples procesadores:
+	☉ Criterios:
+		◆ Planificación temporal: que proceso y durante cuánto tiempo
+		◆ Planificación espacial: en qué procesador ejecutar
+			◇ Huella: estado que el proceso va dejando en la cache un procesador. A medida que se va cargando el contexto de un proceso en la cache de un procesador, éste debería seguir ejecutándose en ese procesador. Es decir, si el proceso deja de ejecutarse por algún evento, su contexto queda en ese procesador y lo ideal es que vuelva a ejecutarse en ese mismo
+			◇ Afinidad: Preferencia de un proceso para ejecutarse en un procesador. Por ejemplo, un proceso que tenga que ver con gráficos tiene la preferencia de ejecutarse en un procesador de GPU
+		
+		La asignación de procesos a un procesador puede ser:
+			◇ Estática: Existe una afinidad de un proceso a una CPU, no se pueden cambiar nunca los procesos asociados a un procesador
+			◇ Dinámica: La carga se comparte -> Balanceo de carga
+			
+		La política puede ser:
+			◇ Tiempo compartido: Se puede considerar una cola global o una cola local a cada procesador
+			◇ Espacio compartido: Grupos (threads) y particiones
+			
+	☉ Clasificaciones:
+		◆ Procesadores homogéneos: Todas las CPUs son iguales. No existen ventajas físicas sobre el resto. Por ejemplo, no tenemos GPU
+		◆ Procesadores heterogéneos: Cada procesador tiene su propia cola, propio clock y propio algoritmo de planificación
+		-----------------------------
+		Otras clasificaciones:
+			Procesadores débilmente acoplados: Cada CPU tiene su propia memoria principal
+			Procesadores fuertemente acoplados: comparten memoria y canales
+			Procesadores especializados: Uno o más procesadores principales de uso general y uno o más procesadores de uso específico

@@ -1,0 +1,48 @@
+Comandos Vim
+
+sudo apt install vim -> Instala Vim en el usuario
+vim .vimrc: Abrir archivo de configuración de Vim
+vim <nombreArchivo>: Crea/Abre el archivo con nombre <nombreArchivo>
+En vim no podes escribir al principio
+
+//Cómo moverse 
+
+●	k 	Arriba
+●	j	Abajo
+●	h 	Izquierda
+●	l 	Derecha
+
+//Cómo empezar a escribir (entrar en modo Insert)
+
+●	Insert
+●	i
+●	a
+
+//Guardar un archivo
+
+	Si estás en modo Insert presionar Esc
+
+//Pasar comandos a Vim
+
+	Con : le indicamos a Vim que vamos a insertar un comando
+
+//Comandos de Vim más comunes 
+	Con ! al final del comando se fuerza la acción sin preguntar(ej :q!)
+	:q Sale del archivo, en caso de haber cambios pregunta si los guarda
+	:w Guarda los cambios
+	:wq / :x Guarda los cambios y sale del archivo
+	:set nu Muestra el número de líneas del archivo
+	:set nu! Desaparece el número de líneas del archivo
+:set background=<color> Depende de tu background podes usar este comando para que haya más contraste
+	dd Corta la línea donde estas parado
+d<n>d Corta la línea donde estas parado + un número <n>
+	p Pega la linea que copiaste debajo de la línea donde estas parado
+	yy Copia la línea donde estas parado
+	y<n>y Copia la línea donde estas parado + un número <n>
+	o Crea una línea debajo y se pone en modo Insert
+	u Deshace un cambio hecho
+	<ctrl> r Rehace un cambio
+	v Entramos en el modo visual, permite seleccionar texto
+	/<texto> Buscar en nuestro archivo(n próxima ocurrencia / <shift> n anterior)
+	gg Nos desplazamos al principio de nuestro archivo
+	G Nos desplazamos al final de nuestro archivo

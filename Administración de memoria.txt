@@ -1,0 +1,185 @@
+Administración de memoria II:
+
+Paginación: 
+	☉ Aparece una estructura de páginas por proceso
+	☉ Necesidad y participación del HW
+	☉ Ventaja -> Rompe con la necesidad de que el espacio de direcciones lógico tenga que modelarse  de forma continua en el espacio físico
+	
+
+No es necesario que todo el espacio de direcciones lógicas de un proceso sea subido a memoria principal. Se pueden subir sólo las partes que sean necesarias. Una vez subidas pasan a llamarse "conjunto residente", es decir, el conjunto residente es la porción del espacio de direcciones del proceso que está en memoria. El SO es quien debe traer a memoria las "piezas" necesarias.
+El HARDWARE es el encargado de decirnos qué está necesitando un proceso para que el SISTEMA OPERATIVO lo cargue en memoria. 
+
+Entonces:
+	◆ Hardware:
+		◇ Encargado de traducir direcciones de memoria
+		◇ Encargado de decirnos qué parte necesita un proceso (Cuando un proceso necesita una página que no está en memoria principal se produce un Page Fault. El HW detecta el fallo y genera un trap al SO)
+		◇ Encargado de activar el Bit M (explicado más adelante) dado que es el HW el que sabe si se realiza una escritura en una direc. de memoria
+		◇ UTILIZA el bit V para saber si lo traduce de lógico a físico o no
+	◆ Sistema Operativo:
+		◇ Encargado de subir/bajar a memoria las porciones de un proceso
+		◇ Encargado de cambiar el Bit V (explicado más adelante) cuando carga una página a memoria
+		◇ UTILIZA el Bit M para reflejar los cambios en el area de intercambio
+
+
+Ventajas de no subir todo el el espacio lógico a físico:
+	★ Más procesos pueden ser mantenidos en memoria principal (al no cargar todo el espacio de direcciones de un proceso, me quedan más lugares libres para subir los espacios necesarios de otros procesos)
+	★ Un proceso puede ser más grande que la memoria principal (si un proceso tiene un espacio lógico mayor al tamaño de la memoria principal, nunca podría ser cargado en su totalidad. Con esta técnica sí podemos tener un proceso mayor a la mem principal dado que se sube de a partes)
+
+Sin embargo necesitamos:
+	- El HW debe soportar paginación por demanda o segmentación por demanda
+	- Un área de almacenamiento secundario para resguardar lo que no está cargado en memoria principal (área de SWAP)
+	- Programar al SO para que sepa responder a la necesidad de tener que subir o bajar páginas que necesite o deje de usar un proceso. 
+
+
+Con esta técnica, el HW no puede hacer una traducción completa de dirección lógica a física de todo el proceso porque hay partes que no se van a subir inmediatamente. Por esto, a la tabla de páginas se le agregan otros bits de  control:
+	◦ Bit V: indica si la página está en memoria
+	◦ Bit M: Indica si la página fue modificada. Si se modificó se deben reflejar los cambios en mem. secundaria
+
+
+
+☒ FALLO DE PÁGINAS:
+	Es lo que se produce cuando un proceso intenta usar una direccion que está en una página que no está cargada en memoria principal. Cuando la MMU intenta traducir una dirección lógica y cuando agarra la página ve que el bit de validez (Bit V) es 0 y genera un trap avisando esto.
+El SO lo primero que hace es: Bloquea el proceso porque éste necesita si o si esa página que no está en memoria. Se busca un marco libre (se encarga el SO buscando en su base de datos qué marco está libre) y se produce una entrada salida para subir la página faltante. Mientras tanto la CPU fue asignada o puede ser asignada a otro proceso hasta que se termine de subir la página faltante.
+Una vez finalizada la entrada salida, el SO actualiza la tabla de página, actualiza el Bit de Validez y el proceso vuelve a cola de Ready. 
+
+La técnica de administración de mem virtual por paginación por demanda puede producir que los page faults sean excesivos y esto hace que la performance de la ténica y del sistema caiga. La cantidad de page faults deben tender a 0 (nunca va a ser 0 porque la técnica es básicamente subir sólo lo necesario a memoria). 
+
+
+✓ Cada proceso tiene su tabla de páginas
+✓ Esa tabla debe estar en mem. principal para que la MMU la pueda traducir
+✓ La tabla puede ser grande 
+--> Tabla de páginas subdividida en 2 niveles:
+	El primer nivel nos permite llegar al segundo nivel. La MMU para traducir una dirección en vez de tener página de desplazamiento, tiene página de nivel 1. Con los primeros bits se accede a una entrada de la tabla de primer nivel. En esta tabla está la dirección de una entrada de segundo nivel. Estas tablas están indexadas con los bits de la dirección: Los primeros indican una entrada a la de la tabla del primer nivel donde encontramos la dirección base de la tabla de segundo nivel que es indexada con la segunda parte de la dirección. Nos metemos en la tabla de segundo nivel donde encontramos el frame a los que se le agregan los siguientes bits de la dirección que son los de desplazamiento para llegar a la direc. física (Si una dirección tiene 32 bits: los primeros 10 corresponden a la entrada de la tabla de primer nivel, eso nos lleva una entrada de segundo nivel y se indexan los siguientes 10 bits de la dirección y en la entrada de la tabla de segundo nivel encontramos el frame para sumarle los 12 bits restantes de la dirección para poder llegar a la dirección física)
+
+Ventajas: 
+	☉ La tabla de páginas se puede paginar (paginarla: podemos sacarla de memoria principal)
+	☉ La única que no podemos sacar es la de primer nivel porque es la base
+Desventaja:
+	☉ Para traducir una direc. de memoria la MMU tiene que acceder dos veces a la memoria (una para el primer nivel y otra para el segundo nivel)
+
+
+
+Tabla invertida:
+	Mantiene las páginas que están cargadas en memoria. A partir de una función hash, busca en una tabla de páginas que sólo contiene entradas de páginas que están en la memoria cargadas y poder obtener la entrada de tabla de página que se necesita para hacer una traducción de direc. Si se busca una direc y no se encuentra, se produce un fallo de página
+
+
+Tamaño de la página:
+	basado en la cantidad de bits que utiliza una dirección.
+	◆Ventajas de un tamaño de página chico:
+		◇ Menos fragmentación interna. Páginas más chicas: menor probabilidad de que me queden espacios grandes
+		◇ Menos bits de desplazamiento, por ende más bits para la página
+		◇ Más páginas de diferentes procesos en memoria (si la página es grande, podemos tener datos en la página que no se están usando pero no los podemos sacar debido a que están en una página que se está usando)
+	◆Ventajas de un tamaño de página grande:
+		◇ Es más rápido mover página hacia memoria principal
+		
+
+Translation lookaside buffer (TLB o Buffer de traducción adelantado):
+	◦Es un dispositivo que tiene el hardware como ayuda al proceso de resolución de direcciones.
+	◦La TLB es manejada por el HW
+	◦Es una memoria pequeña que está en la CPU (ligada a la MMU) y guarda entradas de tablas de páginas que fueron usadas recientemente.
+	◦Dada una dirección virtual, el procesador examina la TLB.
+		-- Si la entrada de la tabla de páginas se encuentra en la TLB (TLB hit), se obtiene el frame y se arma la dirección física
+		-- Si no se encuentra en la TLB (TLB miss), el número de página se usa como índice en la tabla de páginas del proceso. Se controla que la página esté en memoria (si no se encuentra se produce un Page Default) y a su vez se actualiza la TLB.
+	◦Ante cada Context Switch, la TLB se invalida, es decir que lo que está dentro no sirve más.
+	◦Si se llena, se utiliza la política del menos recientemente usado para liberar espacio
+	
+
+Manejo del tamaño del conjunto residente:
+	Cuánta memoria ocupa un proceso?
+		◆Asignación de memoria dinámica
+		  -> El número de marcos para cada proceso varía
+		  No es del todo conveniente porque se puede dar el caso en que tengamos un proceso con alta prioridad que requiera muchas páginas y deje sin espacio al resto de procesos
+		◆Asignación de memoria fija
+		  -> El número de marcos para cada proceso es fijo
+		  ◦ Se realiza una asignación equitativa (100 frames, 5 procesos: 20 frames para cada proceso): Desventaja: Todos reciben los mismos frames sin importar cuántos necesite realmente y quedarían frames sin utilizar. Pero es fácil de implementar
+		  ◦ Asignación acorde al tamaño del proceso. Se arma en función de los frames que ocupa el proceso y frames que tengo disponibles.
+		  Como la cantidad de procesos que hay en memoria va variando, no es buena ninguna de las dos técnicas porque tendríamos que ir redistribuyendo constantemente los frames y tendríamos una sobrecarga en la lógica del SO e implicaría mucho uso de CPU
+		  
+		◆ Se utiliza una mezcla de ambas:
+			El SO plantea que todo proceso arranca con una cantidad fija de marcos pero si se detecta que el proceso necesita más le asigno frames libres
+			
+			
+Reemplazo de páginas:
+	Si un proceso genera un fallo de página y al buscar un frame libre no lo encuentra (puede no haber frames libres porque toda la memoria está ocupada o porque le di un tamaño fijo al proceso y ocupó todo lo que se le había asignado) debe seleccionarse una página que no vaya a ser usada nuevamente para ser removida (reemplazo óptimo). Existen otros reemplazos como FIFO, LRU, NRU (non recently used -> Utiliza bit M y V). 
+	Alcance de reemplazo: A la hora de elegir la página a remover pueden seleccionarse:
+		◇ Reemplazo global: Cualquier página que esté cargada en memoria, de cualquier proceso
+		◇ Reemplazo local: Sólo páginas del proceso que produjo el fallo de página. 
+		Si la taza de fallo de páginas de un proceso es muy alta y utilizo un reemplazo global nunca sabremos si el fallo es por el propio proceso o porque otros procesos le están reemplazando sus páginas. Utilizando el reemplazo local, si ocurren muchos fallos de páginas, el proceso se reemplaza sus propias páginas lo que quiere decir es que el tamaño que se le asignó no le está permitiendo su correcta ejecución
+		
+		Un reemplazo global no va con una asignación fija porque cada proceso tiene su propio espacio y no puede meterse en los espacios de otro proceso. Se suele utilizar un reemplazo local junto con una mezcla entre asignación fija y dinámica 
+		
+		
+	
+Demonio de paginación:	
+Todos los SO tienen un proceso que se llama demonio (no es interactivo, se ejecuta en background)
+	Lo crea el SO durante el arranque
+	Realiza actividades relacionadas a la admin. de memoria.
+	Se ejecuta cuando el sistema tiene una baja utilización o algún parámetro de la memoria lo indica
+	Realizan tareas que no requieren que se haga una llamada al sistema
+	-Limpia páginas modificadas sincronizándolas con el swap
+	-Se ocupa de que haya marcos libres en el sistema
+	-Demora la liberación de una página hasta que haga falta
+	-Son tareas que no se hacen en modo usuario
+	
+	
+Servicios del SO
+  ◆ Compartir memoria
+	Gracias al uso de la tabla de páginas, los procesos pueden compartir un marco de memoria (el marco debe estar asociado a una página en la tabla de páginas de cada proceso
+	El número de página de asociado al marco puede ser diferente en cada proceso
+	A la hora de compartir por ejemplo código, el SO se encarga de hacerlo solo
+  ◆ Mapeo de archivo en memoria
+  	Técnica que permite a un proceso asociar el contenido de un archivo a una región de su espacio de direcciones virtuales, es decir que permite hacer entrada salida sin "open" "read" "write" sino que modificando un archivo (hago la entrada salida) trabajando sobre un area de memoria y el SO se encarga de bajar lo que modifiqué en memoria a este archivo (no lo baja al SWAP como antes)
+  	Sin el mapeado a memoria, se deben utilizar las clásicas entradas salidas (read, write, open, etc)
+  ◆ Copia en escritura
+  	permite a los procesos padre e hijo compartir inicialmente las mismas páginas de memoria. El problema está en los datos dado que los datos son particulares de cada proceso entonces lo que hace el SO con las páginas de datos es marcarlas como solo escritura. Cuando el proceso hijo intenta escribir en la página de datos salta una interrupción de acceso indebido a memoria y el SO copia la página de datos, actualiza la  tabla de página de los dos procesos para que ya no sean de sólo lectura
+  ◆ Area de intercambio
+  	Puede ser un área de partición o un archivo
+  	Técnicas que se utilizan:
+  		-Cuando se crea un proceso se crea un área de intercambio para todo ese proceso. Desventaja: Se desperdicia espacio porque hay elementos que van en el espacio de direcciones que ya están en el área de almacenamiento
+  		-Los SO tienen una estructura más de datos que guarda información de a dónde van a parar las páginas que necesariamente tienen que ir al área de intercambio.
+  	
+  	
+  	
+
+Thrashing (hiperpaginación)
+	Un sistema está en thrashing cuando pasa más tiempo paginando (atendiendo los fallos de página) que ejecutando procesos. La CPU se utiliza demasiado para atender fallos de página. No sólo afecta a la utilización de la CPU sino que también afecta a los dispositivos (los dispositivos deberían tener encolados peticiones de procesos y no peticiones del SO para resolver la administración de la memoria).
+	Algoritmos como el de selección de víctima para reemplazo o un reemplazo global pueden causar thrashing
+	Consecuencia: Baja de performance dado que la CPU se utiliza para atender y no para ejecutar procesos
+	
+Ciclo de thrashing
+	1) El kernel monitorea el uso de la cpu
+	2) Si hay baja utilización => aumenta el grado de multiprogramación (aparecen nuevos procesos)
+	3) si el algoritmo de reemplazo es global, pueden sacarse frames a otros procesos
+	4) Un proceso necesita más frames. Comienzan los page-faults y robo de frames a otros procesos
+	5) Por swapping de páginas, y encolamiento en dispositivos baja e l us ode la CPU
+	6)vuelve a 1
+	
+Soluciones al thrashing:
+	=> Bajar el nivel de multiprogramación (para que haya más frames libres y los procesos tengan sus páginas en memoria de manera de reducir la cantidad de fallos de páginas de cada uno)
+	=> Utilizar algoritmos de reemplazo local de manera que un proceso no pueda robar frames a otros procesos.
+	
+
+Un objetivo del SO debería ser que en todo momento un proceso tenga las páginas que necesita en memoria. Si el SO pudiese detectar eso, puedo reducir la cantidad de fallos de página. Es decir que si un proceso cuenta con todos los frames (o páginas) que necesita, no habría thrashing
+	Para implementar esta solución existen dos técnicas:
+		◆ Working set:
+			Primero hay que saber qué es el modelo de localidad:
+				Cuando un proceso se ejecuta, las instrucciones o direcciones que se utilizan durante la ejecución tienden a agruparse.
+			El Working set se basa en el modelo de localidad. Un proceso se mueve entre la página 1, 2, 3, luego salta a otra localidad 7, 8, 9, y así sucesivamente. Cada grupo es una localidad
+			Durante la vida de un proceso, este transita localidades. Mientras está en una localidad las direcciones a las que está accediendo son próximas pero cuando cambia de localidad empieza a necesitar de páginas que no están cargadas (páginas que no están en el conjunto residente). Si el SO logra mantener cada localidad en el momento en el que se necesita, reduciría los fallos de página de los procesos, es decir, si logro mantener en su conjunto residente las páginas que necesita en función de la localidad en la que está, reduciría los fallos de página del proceso sin embargo es difícil determinar qué localidad será la que usará un proceso porque varia depende de condicionales, iteradores, etc.
+			El working set trata mantener las localidades en memoria.
+			Define un delta que es una ventana de trabajo que son las últimas delta referencias a memoria. En función de esa ventana se arma un conjunto
+			Working set: Conjunto de páginas que tienen las más recientes delta referencias a páginas (Ejemplo video 09 minuto ~27:40)
+			◇ Problemas del Working set:
+				-El valor que le otorgamos al delta es difícil de definir: Un valor muy chico puede generar que no cubra toda la localidad del proceso. Un valor muy grande nos puede generar que en nuestro conjunto de trabajo nos queden cosas que ya no forman parte de su localidad.
+				-Cómo detecto la forma en la que se van utilizando las páginas. Con la ayuda del hardware, se puede utilizar un bit de referencia (se pone un 1 cuando a la página se la utiliza. Cada cierta unidad de tiempo, el SO controla la tabla de página del proceso que se está ejecutando y analiza los bits de referencia para saber qué página se está utilizando y los pone en 0 otra vez. Pasada la unidad de tiempo, vuelve a corroborar la tabla y vuelve a fijarse qué páginas se volvieron a utilizaron. Es muy costoso porque se debe utilizar CPU para analizar una estructura de datos, guardar en otra estructura las páginas utilizadas, limpiar los bits)
+		◆ PFF (frecuencia de fallos de página)
+			Para poder implementar esta técnica sí o sí tiene que haber un reemplazo local
+			Trata de mantener la frecuencia de fallos de página de los procesos en un número manejable (que no afecte a la performance del sistema).
+			En lugar de calcular el working set de los procesos, utiliza la tasa de fallos de página para estimar si el proceso tiene un conjunte residente que representa adecuadamente al working set.
+			Si la frecuencia de fallos de página es muy alta quiere decir que el espacio que yo le di al proceso (su conjunto residente) no le alcanza para mantener la localidad, es decir, el tamaño de su conjunto residente no le alcanza para mantener la localidad de lo que está necesitando.
+			Si la frecuencia de fallos de página es baja, quiere decir que está pudiendo mantener la localidad con el espacio que le di.
+			Estas frecuencias, altas y bajas, nos sirven para poder asignar más frames a una proceso con alta frecuencia y poder robarle frames al que tiene baja frecuencia de fallos.
+			Establece límites superiores e inferiores de las frecuencias de fallos de páginas deseadas. Si se excede el máximo, se le asigna un frame más al proceso. Si está por debajo del mínimo, se le quita un frame al proceso.
+			Puede llegar a suspender un proceso si no hay más frames. Sus frames se reasignan a procesos de alta PFF.
+			
+El Hardware es quien implementa paginación por demanda, el SO se apoya a esa implementación y modela cómo implementar la administración de memoria. El hardware da información del fallo de página y lo atiende el SO.

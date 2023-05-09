@@ -1,0 +1,36 @@
++Seek (posicionamiento): Tiempo que tarda en posicionarse la cabeza en el cilindro.
+-Es el parámetro que más influye en el tiempo de acceso al disco
+
++Latency time: Tiempo que sucede desde que la cabeza se posiciona en el cilindro hasta que el sector en cuestión pasa por debajo de la misma
+
++Tansfer time: Tiempo de transferencia del sector (bloque) del disco a la memoria
+
+
+********* TIEMPO DE ACCESO A UN HDD *********
+
+Si el tiempo de latencia NO se da, se asume que es igual a lo que tarde el disco en dar media vuelta:
+Si el disco es de 5400 RPM:
+5400 vueltas --> 1' = 60.000ms
+1/2 vuelta ----> x = 5.5ms
+
+---> Almacenamiento secuencial <---
+Seek + latency + (tiempo_transferencia_bloque-sector * #bloques)
+
+---> Almacenamiento aleatorio <---
+(seek + latency + tiempo_transferencia_bloque) * #bloques
+
+
+
+********* CAPACIDAD DE UN HDD *********
+
+Tamaño_disco = #Caras * #pistas_cara * #sectores_pista * tamaño_sector
+
+
+
+********* OCUPACION SOBRE UN HDD *********
+(se redondea hacia arriba)
+
+Necesitamos saber la capacidad de una cara:
+ #Cantidad_pistas * #cantidad_sectores_por_pista * #tamaño_sector
+ 
+ y para calcular la ocupación se debe dividir el tamaño del archivo por la capacidad de una cara

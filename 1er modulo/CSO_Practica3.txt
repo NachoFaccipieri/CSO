@@ -1,0 +1,103 @@
+1) Shell es un intérprete de comandos que provee estructuras de control que permiten programar shell scripts. Shell Scripts permite automatizar tareas, crear aplicaciones interactivas, aplicaciones con interfaz gráfica. Los scripts son utilizados para:
+	·Automatizar procesos: nos evita hacer esfuerzos manuales repetitivos. Se utiliza para tareas repetitivas/rutinas, cuanto más compleja la rutina, más nos ayuda el script.
+	·Programar procesos: Cuando necesitamos trabajar con grandes conjuntos de datos se suele utilizar un script programado para que se ejecute en cierta hora (generalmente cuando no hay tráfico de gente, por ejemplo sucede en los bancos)
+	·Mejorar la precisión: Cuando una rutina compleja de análisis de datos se realizan de forma manual, surjan errores probablemente. Por medio de un script, nos evitamos esos errores.
+	·Compartir scripts: Son fáciles de trasladar y compartir.
+Los scripts generalmente no se compilan. Son ejecutados por un intérprete que lee el archivo de código fuente al momento.
+
+2) echo: Imprime el texto a continuación del comando "echo"
+read: lee una línea desde entrada estándar en la variables var 
+read var1 -> *se introduce texto por la entrada estándar* -> el texto introducido queda guardado en la variable var1
+   a) Los comentarios se indican mediante el símbolo numeral: #
+   b) Las variables se declaran mediante el comando var *nombre variable* (Ejemplo: var nombre). Y se referencian mediante el símbolo " $ " (ejemplo: $nombre)
+   -> Si quiero leer un nombre desde teclado e imprimirlo en pantalla:
+   echo "Introduzca su nombre" //en pantalla se muestra: "Introduzca su nombre"
+   read nombre //Se crea la variable nombre y se espera que se introduzca su valor
+   echo "Su nombre es:"
+   echo "$nombre" 
+ 
+4) $# -> Imprime el número de parámetros pasados al script (echo "$#" ó probar echo \$#=$#)
+   $* -> Almacena todos los argumentos que se ingresaron en la línea de comandos
+   $? -> Valor devuelto por el último comando, script, función o sentencia de control invocado
+   $HOME -> De forma predeterminada, contiene una colección de carpetas, incluida una llamada Public.
+
+5) Comando Exit: Sin parámetros cierra/termina la shell actual
+   Exit[numero]: Finaliza el proceso [numero] y retorna su estado. Con esto podemos ver si el proceso [numero] presenta errores (si devuelve un 0 significa que el proceso no ha tenido errores, si devuelve 1 es porque tuvo errores)
+   
+6) expr se puede utilizar para hacer
+  · sumas: expr 12 + 8 -> 20
+  · multiplicaciones: 3 \* 2 -> 6
+  
+  Se pueden contar caracteres de una cadena: 
+  	x = cadena
+  	len = `expr length $x` // `expr length $x` == $(expr length $x)
+  	echo $len
+  	
+  Se pueden contar cuántos caracteres son iguales en dos cadenas:
+  	x = cadena
+  	x1 = cadenas
+  	expr cadena : cadenas
+  	-> 6
+  	
+ 7) Evaluar si dado un path (/etc) es un directorio:
+ 	test -d /etc  // -> pregunta si /etc es un directorio
+ 	echo $?       // -> imprimo el último valor devuelto por una función
+ 	0		   // -> true
+ 	
+    Lo mismo pero usando [ ]
+ 	[ -d /etc ]
+ 	echo $?
+ 	0
+ 	
+    Pregunta si group tiene permisos de read sobre /etc
+     test -r /etc/group
+     echo $?
+     0/1		// -> 0 = true, 1 = false
+     
+    Evalúa si dos strings son iguales:
+     test string1 = string2
+     echo $?
+     0/1  // Si devuelve 0, es porque strin1 y string2 son iguales
+     
+9) Break se usa para salir de un bucle. Permite el pasaje de 1 parámetro que será la cantidad de bucles que deben suceder para terminar
+Break[3] -> el bucle se hará 3 veces. Por defecto es 1
+
+Continue se utiliza para continuar hasta la siguiente iteración. Acepta un parámetro que le indica cuántas veces debe hacer el bucle antes de ir al siguiente. Continue[N]
+
+10) Existen dos tipos de variables: Strings y arreglos. ç
+Para crear una variables se usa: NOMBRE="Nacho" //Sin espacios al rededor del =
+Y para accederla se usa $NOMBRE
+Para crear arreglos:
+  -> arreglo_a= ()  //se crea vacío
+  -> arreglo_b= (1 2 3 4 5) //inicializado
+ Para asignarle valor en una posición concreta:
+  -> arreglo_b[2]=spam
+ Para acceder a una posición e imprimir su contenido:
+  -> echo ${arreglo_b[2]}
+ Acceso a todos los valores:
+  -> echo ${arreglo_b[@]}
+ 
+11) Pueden definirse funciones dentro de un script de la siguiente manera: 
+
+#!/bin/bash
+ function saludos() {
+   variable="$1"
+   echo "Hola ${variables}!"
+}
+saludos
+
+ --> Imprime "Hola!"
+
+
+#!/bin/bash
+ function saludos() {
+   variable="$1"
+   echo "Hola ${variables}!"
+}
+saludos Nacho
+
+--> Imprime "Hola Nacho!"
+
+Cada parámetro es un valor separado por espacios para pasar al script de shell
+
+13)
